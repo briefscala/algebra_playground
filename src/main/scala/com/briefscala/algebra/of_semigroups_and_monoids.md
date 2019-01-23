@@ -36,24 +36,26 @@ def combine(t1: String, t2: String): String = t1 + " " + t2
 
 Inspecting the `Semigroup` examples given we can already see that we have two different ways for combining `Int` values but before we tackle this challenge lets first look at what is a `Monoid`.
 
-### Monoids
+### Pointed
 
-If you thought that semigroups were trivial and were needless of such obscure name, monoids are even simpler (and arguably with an even more obscure name). A monoid is a Set with a `zero` element, or identity element, for a given binary operation as such that if you have any element of the Set the operation on that element and `zero` produces the same element. So, the `zero` is linked to the operation. A different operation could need a different element as `zero`. Let's take a look at what would that look like in Scala with a few simple examples.
+If you thought that semigroups were trivial and were needless of such obscure name, monoids are even simpler (and arguably with an even more obscure name). A monoid is the addition of a Pointed Set, that is a Set with only one element, to a semigroup such that the lone element serves as the identity element. This identity element is called `zero` conventionally and it the identity for the semigroup combine operation only. A different operation could need a different element as `zero`. Let's take a look at what would that look like in Scala with a few simple examples.
 
 ```scala
-trait Monoid[T] {
+trait Pointed[T] {
   def zero: T
 }
 
-val addIntMonoid = new Monoid[Int] {
+trait Monoid[T] extends Pointed[T] with Semigroup[T]
+
+val addIntPointed = new Monoid[Int] {
   def zero: Int = 0
 }
 
-val addStringMonoid = new Monoid[String] {
+val addStringPointed = new Monoid[String] {
   def zero: String = ""
 }
  
-val multIntMonoid = new Monoid[Int] {
+val multIntPointed = new Monoid[Int] {
   def zero: Int = 1
 }
 ```
@@ -94,15 +96,16 @@ object Operation {
 The abstract class `Operation` contains the binary operation `combine` needed by semigroups and `zero` needed by monoids. We tucked away the implementation for the `Add[Int]` and for the `Mult[Int]` operations in the `Operation` companion object so that they can be discovered later when we summon them implicitly. With this in hand I am going to modify our `Monoid` and `Semigroup` traits to take advantage of the `Operation` that we just defined above.
 
 ```scala
-trait Monoid[T, Op[X] <: Operation[X]] {
-  def op: Op[T]
-  def zero: T = op.zero
+trait Pointed[A] {
+  def zero: A
 }
 
 trait Semigroup[A, Op[X] <: Operation[X]] {
   def op: Op[A]
   def append(a1: A, a2: A): A = op.combine(a1, a2)
 }
+
+trait Monoid[A, Op[X] <: Operation[X]] extends Pointed[A] with Semigroup[A, Op]
 ```
 
 Both traits now take a second type parameter, an operation to act on or to act with is you prefer it. `Semigroup` delegates the implementation of `append` to the given operation and `Monoid` that of `zero`. So if this our new traits for `Monoid` and `Semigroup` what would their implementation look like?
