@@ -4,7 +4,7 @@ import com.ereactive.algebra.{Add, MonoidCombined, Mult, Operation}
 import org.scalacheck.{Arbitrary, Properties}
 import org.scalacheck.Prop.forAll
 
-class MonoidCombinedSpec[A, Op[X] <: Operation[X]](
+abstract class MonoidCombinedSpec[A, Op[X] <: Operation[X]](
   m: MonoidCombined[A, Op], name: String)(implicit
   arb: Arbitrary[A]) extends Properties(name) {
 
