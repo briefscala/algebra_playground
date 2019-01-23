@@ -11,8 +11,8 @@ object Main {
     val multSemi = Semigroup[Int, Mult]
 
 
-    implicit val multMonoidCombined = MonoidCombined[Int, Mult]
-    implicit val addMonoidCombined = MonoidCombined[Int, Add]
+    implicit val multMonoidCombined = Monoid[Int, Mult]
+    implicit val addMonoidCombined = Monoid[Int, Add]
 
     println(addMonoid.zero)
     println(multMonoid.zero)

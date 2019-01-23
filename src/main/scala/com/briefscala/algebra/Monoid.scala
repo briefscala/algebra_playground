@@ -1,14 +1,10 @@
 package com.briefscala.algebra
 
-trait Monoid[T, Op[X] <: Operation[X]] {
-  def op: Op[T]
-  def zero: T = op.zero
-}
+trait Monoid[T, Op[X] <: Operation[X]] extends Pointed[T, Op] with Semigroup[T, Op]
 
 object Monoid {
-  def apply[T, InnerOp[X] <: Operation[X]](implicit innerOp: InnerOp[T]): Monoid[T, InnerOp] =
-    new Monoid[T, InnerOp] {
-      val op = innerOp
-      type Op = InnerOp[T]
-    }
+  def apply[T, InnerOp[X] <: Operation[X]](implicit innerOp: InnerOp[T])
+  : Monoid[T, InnerOp] = new Monoid[T, InnerOp] {
+    val op = innerOp
+  }
 }
