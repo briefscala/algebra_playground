@@ -1,4 +1,4 @@
-name := "algebra_exploration"
+name := "algebra_playground"
 
 version := "0.1"
 
