@@ -1,4 +1,4 @@
-package com.ereactive.algebra
+package com.briefscala.algebra
 
 trait Semigroup[A, Op[X] <: Operation[X]] {
   def op: Op[A]

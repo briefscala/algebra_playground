@@ -1,4 +1,4 @@
-package com.ereactive.algebra
+package com.briefscala.algebra
 
 sealed abstract class Operation[T] {
   def combine(t1: T, t2: T): T

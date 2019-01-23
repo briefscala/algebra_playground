@@ -1,4 +1,4 @@
-package com.ereactive.algebra
+package com.briefscala.algebra
 
 object Main {
 

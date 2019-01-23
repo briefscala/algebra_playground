@@ -1,6 +1,5 @@
 package com.briefscala.algebra
 
-import com.ereactive.algebra.{Add, MonoidCombined, Mult, Operation}
 import org.scalacheck.{Arbitrary, Properties}
 import org.scalacheck.Prop.forAll
 
@@ -8,7 +7,11 @@ abstract class MonoidCombinedSpec[A, Op[X] <: Operation[X]](
   m: MonoidCombined[A, Op], name: String)(implicit
   arb: Arbitrary[A]) extends Properties(name) {
 
-  property("identity") = forAll { a: A =>
+  property("leftIdentity") = forAll { a: A =>
+    m.combine(m.zero, a) == a
+  }
+
+  property("rightIdentity") = forAll { a: A =>
     m.combine(a, m.zero) == a
   }
 

@@ -1,4 +1,4 @@
-package com.ereactive.algebra
+package com.briefscala.algebra
 
 trait MonoidCombined[T, Op[X] <: Operation[X]] extends Monoid[T, Op] with Semigroup[T, Op]
 
