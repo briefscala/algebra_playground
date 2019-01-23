@@ -22,7 +22,7 @@ val multIntSemigroup = new Semigroup[Int] {
 }
 ```
 
-So, it really is as simple as we said. Given two values of the same type, or the same Set, if we have a `Semigroup` for that type we know how to combine them. This sounds like a really useful thing to want to do and it certainly is but it isn't without some challenges. When designing our own `Semigroup` we most ensure that the associative rule is obeyed.
+So, it really is as simple as we expected it. Given two values of the same type if we have a `Semigroup` for that type we know how to combine them. This sounds like a really useful thing to want to do and it certainly is but it isn't without some challenges. When designing our own `Semigroup` we most ensure that the associative rule is obeyed.
 
 ```scala
 val isValidMonoid = combine(x1, combine(x2, x3)) == combine(combine(x1, x2), x3)
@@ -38,7 +38,7 @@ Inspecting the `Semigroup` examples given we can already see that we have two di
 
 ### Pointed
 
-If you thought that semigroups were trivial and were needless of such obscure name, monoids are even simpler (and arguably with an even more obscure name). A monoid is the addition of a Pointed Set, that is a Set with only one element, to a semigroup such that the lone element serves as the identity element. This identity element is called `zero` conventionally and it the identity for the semigroup combine operation only. A different operation could need a different element as `zero`. Let's take a look at what would that look like in Scala with a few simple examples.
+If you thought that semigroups were trivial and were needless of such obscure name, monoids are even simpler (and arguably with an even more obscure name). A `Monoid` is the addition of a `Pointed` Set, that is a Set with only one element, to a `Semigroup` such that the lone element serves as the identity element. This identity element is called `zero` conventionally and is the identity for the semigroup's combine operation only. A different operation could need a different element as `zero`. Let's take a look at what would that look like in Scala with a few simple examples.
 
 ```scala
 trait Pointed[T] {
@@ -48,14 +48,17 @@ trait Pointed[T] {
 trait Monoid[T] extends Pointed[T] with Semigroup[T]
 
 val addIntPointed = new Monoid[Int] {
+  def combined(a0: Int, a1: Int): Int = a0 + a1
   def zero: Int = 0
 }
 
 val addStringPointed = new Monoid[String] {
+  def combined(a0: String, a1: String): String = a0 + a1
   def zero: String = ""
 }
  
 val multIntPointed = new Monoid[Int] {
+  def combined(a0: Int, a1: Int): Int = a0 * a1
   def zero: Int = 1
 }
 ```
@@ -63,7 +66,7 @@ val multIntPointed = new Monoid[Int] {
 There is truly nothing surprising or obscure about `Monoid`s. Just like we need operations like `sum`, `multiplication` and `substraction` in the real world for example for banking or shopping we also need a `zero` and in Mathematics, Set Theory or Category Theory, this is given with respect to an operation by the `Monoid` construct which have to obey the identity law too for all the elements in the Set.
 
 ```scala
-val isValidMonoid = combine(elem, zero) == elem
+val isValidMonoid = combine(elem, zero) == elem && combine(zero, elem) == elem
 ```
 
 ### Operations
@@ -102,7 +105,7 @@ trait Pointed[A] {
 
 trait Semigroup[A, Op[X] <: Operation[X]] {
   def op: Op[A]
-  def append(a1: A, a2: A): A = op.combine(a1, a2)
+  def combine(a1: A, a2: A): A = op.combine(a1, a2)
 }
 
 trait Monoid[A, Op[X] <: Operation[X]] extends Pointed[A] with Semigroup[A, Op]
@@ -142,8 +145,8 @@ val multSemi = Semigroup[Int, Mult]
 println(addMonoid.zero) // 0
 println(multMonoid.zero) // 1
 
-println(addSemi.append(3, 3)) // 6
-println(multSemi.append(3, 3)) // 9
+println(addSemi.combine(3, 3)) // 6
+println(multSemi.combine(3, 3)) // 9
 ```
 
 Because we can differentiate operations on `Int`s and we differentiate `Monoid`s and `Semigroup`s by their types and operations they act on, these are also known as `TypeFamily`, we can have an addition monoid and a multiplication monoid for `Int`s and the same for semigroups.
@@ -151,25 +154,25 @@ Because we can differentiate operations on `Int`s and we differentiate `Monoid`s
 It also makes practical sense to have these two trait behaviors into one trait. We are going to do that here in a trait that I am going to called `MonoidCombined` for added clarity which would give us a way to talk generically about these operations.
 
 ```scala
-trait MonoidCombined[T, Op[X] <: Operation[X]] 
-  extends Monoid[T, Op] with Semigroup[T, Op]
+trait Monoid[T, Op[X] <: Operation[X]] 
+  extends Pointed[T] with Semigroup[T, Op]
 
-object MonoidCombined {
+object Monoid {
   def apply[T, InnerOp[X] <: Operation[X]](implicit innerOp: InnerOp[T])
-  : MonoidCombined[T, InnerOp] = new MonoidCombined[T, InnerOp] {
+  : Monoid[T, InnerOp] = new Monoid[T, InnerOp] {
     val op = innerOp
   }
 }
 
-implicit val multMonoidCombined = MonoidCombined[Int, Mult]
+implicit val multMonoid = Monoid[Int, Mult]
 
-implicit val addMonoidCombined = MonoidCombined[Int, Add]
+implicit val addMonoid = Monoid[Int, Add]
 
-def withMonoidCombined(int1: Int, int2: Int)(
-  implicit addIntMC: MonoidCombined[Int, Add]
-): Int = addIntMC.combine(int1, int2)
+def withAddMonoid(int1: Int, int2: Int)(
+  implicit addIntM: Monoid[Int, Add]
+): Int = addIntM.combine(int1, int2)
 
-withMonoidCombined(3, 3) // 6
+withAddMonoid(3, 3) // 6
 ``` 
 
-In this post we gloss over the rigour of mathematics, I would argue that for our benefits and without lose of meaning, however our new `Semigroup`, `Monoid` and `MonoidCombined` it more closely resembles its definition in Set Theory sporting greater flexibility for precising which operation we mean when calling for a monoid in a Set i.e which monoid we mean in `Monoid[Int]` since many are possible under the right `Operation`. For a more rigours analysis spend a 5 minutes with Bartosz Milewski in this lecture [here](https://youtu.be/aZjhqkD6k6w?t=1968).
+In this post we gloss over the rigour of mathematics, I would argue that for our benefits and without lose of meaning, however our new `Semigroup`, `Monoid` and `MonoidCombined` it more closely resembles its definition in Set Theory sporting greater flexibility for precising which operation we mean when calling for a monoid in a Set i.e which monoid we mean in `Monoid[Int]` since many are possible under the right `Operation`. For a more rigours analysis spend 5 minutes with Bartosz Milewski in this lecture [here](https://youtu.be/aZjhqkD6k6w?t=1968).
